@@ -1,0 +1,15 @@
+{
+  "name": "ffxiv-undercutalert-discord",
+  "module": "src/index.js",
+  "type": "module",
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "dependencies": {
+    "discord.js": "^14.13.0"
+  },
+  "scripts": {
+    "dev": "bun run src/index.js",
+    "deploy": "bun run src/processes/deploy-commands.js"
+  }
+}
