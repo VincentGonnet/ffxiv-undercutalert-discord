@@ -1,7 +1,7 @@
 // Require the necessary discord.js classes
 import fs from 'node:fs';
 import path from 'node:path';
-import { Collection, Client, Events, GatewayIntentBits } from 'discord.js';
+import { Collection, Client, Events, GatewayIntentBits, ApplicationCommand, SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
 const token = Bun.env.DISCORD_TOKEN;
 // Create a new client instance
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
@@ -19,7 +19,7 @@ const commandFiles = fs.readdirSync(commandsPath).filter(file => (file.endsWith(
 
 for (const file of commandFiles) {
 	const filePath = path.join(commandsPath, file);
-	const command = require(filePath);
+	const command: {data: SlashCommandBuilder, execute: (client: Client, interaction: ChatInputCommandInteraction) => {}} = require(filePath);
 	// Set a new item in the Collection with the key as the command name and the value as the exported module
 	if ('data' in command && 'execute' in command) {
 		client.commands.set(command.data.name, command);
@@ -31,7 +31,7 @@ for (const file of commandFiles) {
 client.on(Events.InteractionCreate, async interaction => {
 	if (!interaction.isChatInputCommand()) return;
 
-	const command = interaction.client.commands.get(interaction.commandName);
+	const command: {data: SlashCommandBuilder, execute: (client: Client, interaction: ChatInputCommandInteraction) => {}} = interaction.client.commands.get(interaction.commandName);
 
 	if (!command) {
 		console.error(`No command matching ${interaction.commandName} was found.`);
@@ -39,7 +39,7 @@ client.on(Events.InteractionCreate, async interaction => {
 	}
 
 	try {
-		await command.execute(interaction);
+		await command.execute(client, interaction);
 	} catch (error) {
 		console.error(error);
 		if (interaction.replied || interaction.deferred) {
