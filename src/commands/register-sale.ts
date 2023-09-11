@@ -6,6 +6,9 @@ export default {
     data: new SlashCommandBuilder()
         .setName('register-sale')
         .setDescription('Register a sale'),
+    async autocomplete(client: Client, interaction: ChatInputCommandInteraction) {
+        return;
+    },
     async execute(client: Client, interaction: ChatInputCommandInteraction) {
         const db: Database = client.db;
         const userId: string = interaction.user.id;

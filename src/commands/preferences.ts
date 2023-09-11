@@ -30,6 +30,9 @@ module.exports = {
                 .setRequired(true)
                 .setAutocomplete(true)
             ),
+    async autocomplete(client: Client, interaction: ChatInputCommandInteraction) {
+        return;
+    },
     async execute(client: Client, interaction: ChatInputCommandInteraction) {
         // const homeWorld: string = interaction.options.getString('homeworld');
         // const db: Database = client.db;

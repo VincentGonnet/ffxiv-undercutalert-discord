@@ -9,7 +9,8 @@ const commandFiles = readdirSync(commandsPath).filter(file => (file.endsWith('.j
 
 for (const file of commandFiles) {
     const filePath = join(commandsPath, file);
-    const command = require(filePath);
+    let command = require(filePath);
+    if ('default' in command) command = command.default;
     if ('data' in command && 'execute' in command) {
         commands.push(command.data.toJSON());
     } else {

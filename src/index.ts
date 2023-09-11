@@ -2,16 +2,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { Database } from "bun:sqlite";
-import { Collection, Client, Events, GatewayIntentBits, ApplicationCommand, SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
+import { Collection, Client, Events, GatewayIntentBits, ApplicationCommand, SlashCommandBuilder, ChatInputCommandInteraction, AutocompleteInteraction } from 'discord.js';
 
 const token = Bun.env.DISCORD_TOKEN;
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
-
-// When the client is ready, run this code (only once)
-// We use 'c' for the event parameter to keep it separate from the already defined 'client'
-client.once(Events.ClientReady, c => {
-	console.log(`Ready ! Logged in as ${c.user.tag}`);
-});
 
 client.commands = new Collection();
 
@@ -29,36 +23,23 @@ for (const file of commandFiles) {
 	if ('data' in command && 'execute' in command) {
 		client.commands.set(command.data.name, command);
 	} else {
-		console.log(command);
 		console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
 	}
 }
 
-client.on(Events.InteractionCreate, async interaction => {
-	if (interaction.isAutocomplete()) {
+const eventsPath = path.join(import.meta.dir, 'events');
+const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js') || file.endsWith('.ts'));
 
-		return;
+for (const file of eventFiles) {
+	const filePath = path.join(eventsPath, file);
+	const event : any = require(filePath).default;
+	if (event.once) {
+		client.once(event.name, (...arg) => event.execute(...arg));
+	} else {
+		client.on(event.name, (...args) => event.execute(...args));
 	}
+}
 
-	if (!interaction.isChatInputCommand()) return;
-	const command: {data: SlashCommandBuilder, execute: (client: Client, interaction: ChatInputCommandInteraction) => {}} = interaction.client.commands.get(interaction.commandName);
-
-	if (!command) {
-		console.error(`No command matching ${interaction.commandName} was found.`);
-		return;
-	}
-
-	try {
-		await command.execute(client, interaction);
-	} catch (error) {
-		console.error(error);
-		if (interaction.replied || interaction.deferred) {
-			await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
-		} else {
-			await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-		}
-	}
-});
 
 client.db = new Database('ffxiv.db', { create: true });
 const query = client.db.query(`CREATE TABLE IF NOT EXISTS users (
