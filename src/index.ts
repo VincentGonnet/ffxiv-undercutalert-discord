@@ -35,8 +35,12 @@ for (const file of commandFiles) {
 }
 
 client.on(Events.InteractionCreate, async interaction => {
-	if (!interaction.isChatInputCommand()) return;
+	if (interaction.isAutocomplete()) {
 
+		return;
+	}
+
+	if (!interaction.isChatInputCommand()) return;
 	const command: {data: SlashCommandBuilder, execute: (client: Client, interaction: ChatInputCommandInteraction) => {}} = interaction.client.commands.get(interaction.commandName);
 
 	if (!command) {
