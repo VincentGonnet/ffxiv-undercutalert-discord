@@ -1,9 +1,10 @@
 // Require the necessary discord.js classes
 import fs from 'node:fs';
 import path from 'node:path';
+import { Database } from "bun:sqlite";
 import { Collection, Client, Events, GatewayIntentBits, ApplicationCommand, SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
+
 const token = Bun.env.DISCORD_TOKEN;
-// Create a new client instance
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 // When the client is ready, run this code (only once)
@@ -19,11 +20,16 @@ const commandFiles = fs.readdirSync(commandsPath).filter(file => (file.endsWith(
 
 for (const file of commandFiles) {
 	const filePath = path.join(commandsPath, file);
-	const command: {data: SlashCommandBuilder, execute: (client: Client, interaction: ChatInputCommandInteraction) => {}} = require(filePath);
+	let command: any = require(filePath);
 	// Set a new item in the Collection with the key as the command name and the value as the exported module
+	if ('default' in command) {
+		command = command.default;
+	}
+
 	if ('data' in command && 'execute' in command) {
 		client.commands.set(command.data.name, command);
 	} else {
+		console.log(command);
 		console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
 	}
 }
@@ -50,7 +56,12 @@ client.on(Events.InteractionCreate, async interaction => {
 	}
 });
 
+client.db = new Database('ffxiv.db', { create: true });
+const query = client.db.query(`CREATE TABLE IF NOT EXISTS users (
+	id TEXT PRIMARY KEY,
+	datacenter TEXT,
+	homeworld TEXT
+)`);
+await query.run();
 
-
-// Log in to Discord with your client's token
 client.login(token);
