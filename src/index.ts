@@ -48,5 +48,18 @@ const query = client.db.query(`CREATE TABLE IF NOT EXISTS users (
 	homeworld TEXT
 )`);
 await query.run();
+await query.finalize();
+
+// create a new 'retainers' table
+// primary key is the user id linked to user table
+// name is the name of the retainer
+
+const query2 = client.db.query(`CREATE TABLE IF NOT EXISTS retainers (
+	user_id TEXT,
+	name TEXT,
+	FOREIGN KEY(user_id) REFERENCES users(id)
+)`);
+await query2.run();
+await query2.finalize();
 
 client.login(token);

@@ -1,8 +1,9 @@
 const { SlashCommandBuilder } = require('discord.js');
-import{ Client, ChatInputCommandInteraction, SlashCommandStringOption} from 'discord.js';
+import{ Client, ChatInputCommandInteraction, SlashCommandStringOption, AutocompleteInteraction} from 'discord.js';
 import { Database } from "bun:sqlite";
+import { getWorldsByServer } from '../utils/worlds-getter.ts';
 
-module.exports = {
+export default {
     data: new SlashCommandBuilder()
         .setName('preferences')
         .setDescription('Set your personal preferences.')
@@ -30,18 +31,35 @@ module.exports = {
                 .setRequired(true)
                 .setAutocomplete(true)
             ),
-    async autocomplete(client: Client, interaction: ChatInputCommandInteraction) {
-        return;
+    async autocomplete(client: Client, interaction: AutocompleteInteraction) {
+        const focusedOption = interaction.options.getFocused(true);
+		let choices: string[];
+
+		if (focusedOption.name === 'world') {
+            let datacenter = interaction.options.getString('datacenter');
+			choices = await getWorldsByServer(datacenter);
+		}
+
+		const filtered = choices.filter(choice => choice.startsWith(focusedOption.value));
+		await interaction.respond(
+			filtered.map(choice => ({ name: choice, value: choice })),
+		);
     },
     async execute(client: Client, interaction: ChatInputCommandInteraction) {
-        // const homeWorld: string = interaction.options.getString('homeworld');
-        // const db: Database = client.db;
-        // const userId: string = interaction.user.id;    
+        const datacenter: string = interaction.options.getString('datacenter');
+        const world: string = interaction.options.getString('world');
 
-        // // Insert or replace the user's homeworld
-        // await db.run(`INSERT OR REPLACE INTO users (id, homeworld) VALUES (?, ?)`, [userId, homeWorld]);
+        const worldList: string[] = await getWorldsByServer(datacenter);
+        if (!worldList.includes(world)) {
+            await interaction.reply({content: `The world ${world} doesn't exist in the datacenter ${datacenter}.`, ephemeral: true});
+            return;
+        }
 
-        // await interaction.reply({content:`Your home world has been set as ${homeWorld}`, ephemeral: true});
+        const db: Database = client.db;
+        const userId: string = interaction.user.id;    
+
+        await db.run(`INSERT INTO users (id, datacenter, homeworld) VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET datacenter = ?, homeworld = ?`, [userId, datacenter, world, datacenter, world]);
+        await interaction.reply({content: `Your preferences have been set to ${datacenter} and ${world}.`, ephemeral: true});
 
     },
 };
