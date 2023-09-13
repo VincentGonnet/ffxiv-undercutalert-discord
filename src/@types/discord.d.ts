@@ -5,4 +5,7 @@ declare module "discord.js" {
     commands: Collection<string, {data: SlashCommandBuilder, autocomplete: (client: Client, interaction: AutocompleteInteraction) => {}, execute: (client: Client, interaction: ChatInputCommandInteraction) => {}}>;
     db: Database;
   }
+  export interface AutocompleteInteraction {
+    retainerCache: Collection<string, [string]>;
+  }
 }

@@ -30,6 +30,17 @@ export default {
                 .setDescription("Your character's home world.")
                 .setRequired(true)
                 .setAutocomplete(true)
+            )
+            .addStringOption((option: SlashCommandStringOption) =>
+                option.setName('language')
+                    .setDescription("Your preffered language for item names.")
+                    .setRequired(true)
+                    .addChoices(
+                        {name: "English", value: "en"},
+                        {name: "Japanese", value: "ja"},
+                        {name: "German", value: "de"},
+                        {name: "French", value: "fr"}
+                    )
             ),
     async autocomplete(client: Client, interaction: AutocompleteInteraction) {
         const focusedOption = interaction.options.getFocused(true);
@@ -48,6 +59,7 @@ export default {
     async execute(client: Client, interaction: ChatInputCommandInteraction) {
         const datacenter: string = interaction.options.getString('datacenter');
         const world: string = interaction.options.getString('world');
+        const language: string = interaction.options.getString('language');
 
         const worldList: string[] = await getWorldsByServer(datacenter);
         if (!worldList.includes(world)) {
@@ -58,8 +70,8 @@ export default {
         const db: Database = client.db;
         const userId: string = interaction.user.id;    
 
-        await db.run(`INSERT INTO users (id, datacenter, homeworld) VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET datacenter = ?, homeworld = ?`, [userId, datacenter, world, datacenter, world]);
-        await interaction.reply({content: `Your preferences have been set to ${datacenter} and ${world}.`, ephemeral: true});
+        await db.run(`INSERT INTO users (id, datacenter, homeworld, language) VALUES (?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET datacenter = ?, homeworld = ?, language = ?`, [userId, datacenter, world, language, datacenter, world, language]);
+        await interaction.reply({content: `Your preferences have been set to ${datacenter} - ${world}, with language : ${language}.`, ephemeral: true});
 
     },
 };

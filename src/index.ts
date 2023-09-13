@@ -45,7 +45,8 @@ client.db = new Database('ffxiv.db', { create: true });
 const query = client.db.query(`CREATE TABLE IF NOT EXISTS users (
 	id TEXT PRIMARY KEY,
 	datacenter TEXT,
-	homeworld TEXT
+	homeworld TEXT,
+	language TEXT
 )`);
 await query.run();
 await query.finalize();
@@ -53,13 +54,30 @@ await query.finalize();
 // create a new 'retainers' table
 // primary key is the user id linked to user table
 // name is the name of the retainer
+// automatic is a boolean to know if the user wants to automatically check for sales on this retainer
 
 const query2 = client.db.query(`CREATE TABLE IF NOT EXISTS retainers (
 	user_id TEXT,
 	name TEXT,
+	automatic INTEGER,
 	FOREIGN KEY(user_id) REFERENCES users(id)
 )`);
 await query2.run();
 await query2.finalize();
+
+// create a new 'sales' table
+// id is the user id linked to user table
+// retainer is the name of the retainer
+// item is the item being sold (id)
+
+const query3 = client.db.query(`CREATE TABLE IF NOT EXISTS sales (
+	id TEXT,
+	retainer TEXT,
+	item TEXT,
+	FOREIGN KEY(id) REFERENCES users(id),
+	FOREIGN KEY(retainer) REFERENCES retainers(name)
+)`);
+await query3.run();
+await query3.finalize();
 
 client.login(token);
