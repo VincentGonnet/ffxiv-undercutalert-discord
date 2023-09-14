@@ -54,9 +54,6 @@ export default {
             console.log(jsonMarketResponse.listings);            
         }
 
-        // remove duplicates from solds
-        solds = [...new Set(solds)];
-
         const soldsItems = []
         for (const sold of solds) {
             const apiItemResponse : any = await fetch(`https://xivapi.com/item/${sold}`);
