@@ -1,5 +1,5 @@
 import Database from 'bun:sqlite';
-import{ Client, SlashCommandBuilder, ChatInputCommandInteraction } from 'discord.js';
+import{ Client, SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 
 export default {
     data: new SlashCommandBuilder()
@@ -20,6 +20,7 @@ export default {
             return;
         }
 
+        const homeServer = preferences[0].datacenter;
         const homeWorld = preferences[0].homeworld;
         const language = preferences[0].language;
 
@@ -50,8 +51,6 @@ export default {
             } else if (listings.length > 0 && listings[0].retainerName != retainerName) {
                 undercuts.push(itemId);
             }
-        
-            console.log(jsonMarketResponse.listings);            
         }
 
         const soldsItems = []
@@ -75,12 +74,6 @@ export default {
             }
             await db.query(`DELETE FROM sales WHERE rowid in (SELECT rowid FROM sales WHERE user_id = $1 AND item_id = $2 LIMIT 1)`).run({$1: userId, $2: sold});
         }
-        const soldsList = soldsItems.join(', ');
-
-        if (undercuts.length === 0) {
-            await interaction.reply({content: "You didn't get undercut.", ephemeral: true});
-            return;
-        }
 
         const items = [];
         for (const undercut of undercuts) {
@@ -102,8 +95,24 @@ export default {
                     break;
             }
         }
+        
+        const responseEmbed = new EmbedBuilder()
+            .setTitle('Undercut checkup')
+            .setFooter({text: `🛎️ ${homeServer} - ${homeWorld}`})
+            .setColor('#e98640');
+        
+        if (undercuts.length > 0) {
+            const itemsList = items.join('\n▫️');
+            responseEmbed.addFields({name: 'You got undercut for the following sales', value: `▫️${itemsList}`});
+        } else {
+            responseEmbed.addFields({name: 'You didn\'t get undercut for any of your sales', value: '🎉'});
+        }
 
-        const itemsList = items.join(', ');
-        await interaction.reply({content: `You got undercut for ${itemsList}.\nYou sold ${soldsList}.`, ephemeral: true});        
+        if (solds.length > 0) {
+            const soldsList = soldsItems.join('\n▫️');
+            responseEmbed.addFields({name: 'The following items have been sold', value: `▫️${soldsList}`});
+        }
+
+        await interaction.reply({embeds: [responseEmbed], ephemeral: true});
     },
 };
