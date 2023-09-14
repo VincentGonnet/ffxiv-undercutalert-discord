@@ -35,10 +35,13 @@ export default {
 		const db: Database = client.db;
         const userId: string = interaction.user.id;
 
-        // TODO : handle case where user has no retainers or no preferences
-
 		if (focusedOption.name === 'retainer') {
             let result : any = await db.query(`SELECT name FROM retainers WHERE user_id = $1`).all({$1: userId});
+
+            if (result.length === 0) {
+                interaction.respond([{name: "No retainers found", value: "No retainers found"}]);
+                return;
+            }
 
             const filtered = result.filter(retainer => retainer.name.startsWith(focusedOption.value));
             await interaction.respond(
@@ -47,7 +50,15 @@ export default {
 		}
 
         if (focusedOption.name === 'item') {
-            const response = await fetch(`https://xivapi.com/search?string=${focusedOption.value.replaceAll(" ", "%20")}&indexes=item&language=fr&&limit=20&string_algo=wildcard`);
+            let result : any = await db.query(`SELECT language FROM users WHERE id = $1`).all({$1: userId});
+
+            let language : string = "en";
+
+            if (result.length != 0) {
+                language = result[0].language;
+            }
+
+            const response = await fetch(`https://xivapi.com/search?string=${focusedOption.value.replaceAll(" ", "%20")}&indexes=item&language=${language}&&limit=20&string_algo=wildcard`);
             let jsonResponse = await response.json(); 
 
             if (jsonResponse.Results.length === 0) return;

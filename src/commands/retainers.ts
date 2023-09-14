@@ -38,8 +38,7 @@ export default {
             const db: Database = client.db;
             const userId: string = interaction.user.id;
 
-            const query = db.query(`SELECT name FROM retainers WHERE user_id = $1`);
-            let result : any = await query.all({$1: userId});
+            let result : any = db.query(`SELECT name FROM retainers WHERE user_id = $1`).all({$1: userId});
 
             const filtered = result.filter(retainer => retainer.name.startsWith(focusedOption.value));
             await interaction.respond(
