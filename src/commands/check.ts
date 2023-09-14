@@ -26,6 +26,7 @@ export default {
         const undercuts = [];
         let solds = [];
 
+        const treatedListings = [];
         for (const sale of sales) {
             const itemId : number = sale.item_id;
             const retainerName : string = sale.retainer;
@@ -37,7 +38,8 @@ export default {
 
             let bought : boolean = true;
             for (const listing of listings) {
-                if (listing.retainerName === retainerName) {
+                if (listing.retainerName === retainerName && !treatedListings.includes(listing.listingID)) {
+                    treatedListings.push(listing.listingID);
                     bought = false;
                     break;
                 }
@@ -51,7 +53,7 @@ export default {
         
             console.log(jsonMarketResponse.listings);            
         }
-        
+
         // remove duplicates from solds
         solds = [...new Set(solds)];
 
