@@ -24,7 +24,7 @@ export default {
         const language = preferences[0].language;
 
         const undercuts = [];
-        const solds = [];
+        let solds = [];
 
         for (const sale of sales) {
             const itemId : number = sale.item_id;
@@ -51,9 +51,9 @@ export default {
         
             console.log(jsonMarketResponse.listings);            
         }
-
-        console.log(solds);
-        console.log(undercuts);
+        
+        // remove duplicates from solds
+        solds = [...new Set(solds)];
 
         const soldsItems = []
         for (const sold of solds) {
@@ -74,7 +74,7 @@ export default {
                     soldsItems.push(jsonItemResponse.Name);
                     break;
             }
-            await db.query(`DELETE FROM sales WHERE user_id = $1 AND item_id = $2`).run({$1: userId, $2: sold});
+            await db.query(`DELETE FROM sales WHERE rowid in (SELECT rowid FROM sales WHERE user_id = $1 AND item_id = $2 LIMIT 1)`).run({$1: userId, $2: sold});
         }
         const soldsList = soldsItems.join(', ');
 
