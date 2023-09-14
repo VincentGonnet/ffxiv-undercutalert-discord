@@ -71,10 +71,11 @@ await query2.finalize();
 // item is the item being sold (id)
 
 const query3 = client.db.query(`CREATE TABLE IF NOT EXISTS sales (
-	id TEXT,
+	user_id TEXT,
 	retainer TEXT,
-	item TEXT,
-	FOREIGN KEY(id) REFERENCES users(id),
+	item_id INTEGER,
+	automatic_checks INTEGER,
+	FOREIGN KEY(user_id) REFERENCES users(id),
 	FOREIGN KEY(retainer) REFERENCES retainers(name)
 )`);
 await query3.run();

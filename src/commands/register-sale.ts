@@ -74,9 +74,7 @@ export default {
         const db: Database = client.db;
         const userId: string = interaction.user.id;
 
-        let query = db.query(`SELECT datacenter, homeworld, language FROM users WHERE id = $1`);
-        let result : any = await query.all({$1: userId});
-        query.finalize();
+        let result : any = await db.query(`SELECT datacenter, homeworld, language FROM users WHERE id = $1`).all({$1: userId});
 
         if (result.length === 0) {
             interaction.reply({content: `You need to set your preferences first.\nUse \`/preferences\` to do so.`, ephemeral: true});
@@ -88,9 +86,7 @@ export default {
         const homeworld : string = userInfos.homeworld;
         const language : string = userInfos.language;
 
-        query = db.query(`SELECT name FROM retainers WHERE user_id = $1`);
-        result = await query.all({$1: userId});
-        query.finalize();
+        result = await db.query(`SELECT name FROM retainers WHERE user_id = $1`).all({$1: userId});
 
         if (result.length === 0) {
             interaction.reply({content: `You need to add a retainer first.\nUse \`/retainers add\` to do so.`, ephemeral: true});
@@ -108,6 +104,20 @@ export default {
             interaction.reply({content: `Please select a registered retainer`, ephemeral: true});
             return;
         }
+
+        // Handle unknown item
+        if (isNaN(parseInt(itemId))) {
+            interaction.reply({content: `Please select a valid item in the autocomplete list.`, ephemeral: true});
+            return;
+        }
+
+        const apiResponse = await fetch(`https://universalis.app/api/v2/${homeworld}/${itemId}`);
+        const jsonResponse = await apiResponse.json();
+        console.log(jsonResponse.listings);
+        // console.log(jsonResponse.recentHistory);
+
+        await db.query('INSERT INTO sales (user_id, retainer, item_id, automatic_checks) VALUES ($1, $2, $3, $4)')
+            .run({$1: userId, $2: retainer, $3: parseInt(itemId), $4: (automaticChecks === "yes") ? 1 : 0});
 
         interaction.reply({content: `Retainer: ${retainer}, itemId: ${itemId}, auto: ${automaticChecks}`, ephemeral: true});
     }
