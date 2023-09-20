@@ -25,7 +25,7 @@ export default {
         const homeWorld = preferences[0].homeworld;
         const language = preferences[0].language;
 
-        const responseEmbed = await checkSales(db, sales, homeServer, homeWorld, language, userId);
+        const responseEmbed = await checkSales(client, db, sales, homeServer, homeWorld, language, userId);
 
         await interaction.reply({embeds: [responseEmbed], ephemeral: true});
     },

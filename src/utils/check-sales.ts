@@ -1,7 +1,7 @@
 import Database from "bun:sqlite";
-import { EmbedBuilder } from "discord.js";
+import { Client, EmbedBuilder } from "discord.js";
 
-export async function checkSales(db: Database, sales: any, homeServer: string, homeWorld: string, language: string, userId: string) {
+export async function checkSales(client: Client, db: Database, sales: any, homeServer: string, homeWorld: string, language: string, userId: string, autoCheck: boolean = false) {
     const undercuts = [];
     let solds = [];
 
@@ -26,8 +26,14 @@ export async function checkSales(db: Database, sales: any, homeServer: string, h
 
         if (bought) {
             solds.push(itemId);
-        } else if (listings.length > 0 && listings[0].retainerName != retainerName) {
+        } else if (listings.length > 0 && listings[0].retainerName == retainerName && client.treatedSalesIds.includes(listings[0].listingID)) {
+            // remove from treated sales
+            client.treatedSalesIds.splice(client.treatedSalesIds.indexOf(listings[0].listingID), 1);
+        } else if (listings.length > 0 && listings[0].retainerName != retainerName && !(autoCheck && client.treatedSalesIds.includes(listings[0].listingID))) {
             undercuts.push(itemId);
+            if (autoCheck) {
+                client.treatedSalesIds.push(listings[0].listingID);
+            }
         }
     }
 
@@ -54,7 +60,8 @@ export async function checkSales(db: Database, sales: any, homeServer: string, h
     }
 
     const items = [];
-    for (const undercut of undercuts) {
+    for (const undercut of undercuts) {        
+        client.treatedSalesIds.push(undercut.listingID);
         const apiItemResponse : any = await fetch(`https://xivapi.com/item/${undercut}`);
         const jsonItemResponse : any = await apiItemResponse.json();
 

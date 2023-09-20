@@ -1,5 +1,5 @@
 import Database from 'bun:sqlite';
-import { ActivityType, Client, Events } from 'discord.js';
+import { ActionRowBuilder, ActivityType, ButtonBuilder, ButtonStyle, Client, Events } from 'discord.js';
 import { checkSales } from '../utils/check-sales';
 
 export default {
@@ -51,10 +51,25 @@ export default {
 			const homeWorld = preferences[0].homeworld;
 			const language = preferences[0].language;
 
-			const responseEmbed = await checkSales(db, userSales, homeServer, homeWorld, language, userId);
+			setInterval(async () => {
+				const responseEmbed = await checkSales(client, db, userSales, homeServer, homeWorld, language, userId, true);
 
-			const user = await client.users.fetch(userId);
-			await user.send({embeds: [responseEmbed]});
+				if (responseEmbed.data.fields[0].name == "You didn't get undercut for any of your sales") return;
+
+				const deleteButton = new ButtonBuilder()
+					.setCustomId('delete-auto-check')
+					.setLabel('❌')
+					.setStyle(ButtonStyle.Secondary);
+				
+				const row : any = new ActionRowBuilder().addComponents(deleteButton);
+
+				const user = await client.users.fetch(userId);
+				await user.send({embeds: [responseEmbed], components: [row]});
+			}, 1*30*1000);
+
+			
+
+			await new Promise(resolve => setTimeout(resolve, 1000)); // one sec delay between each user, to avoid spamming the API
 		}
 	},
 };

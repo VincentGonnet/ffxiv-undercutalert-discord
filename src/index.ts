@@ -3,11 +3,19 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { Database } from "bun:sqlite";
 import { Collection, Client, Events, GatewayIntentBits, ApplicationCommand, SlashCommandBuilder, ChatInputCommandInteraction, AutocompleteInteraction } from 'discord.js';
+import { Partials } from 'discord.js';
 
 const token = Bun.env.DISCORD_TOKEN;
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({ 
+	partials: [
+		Partials.Channel
+	],
+	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.DirectMessages]
+});
 
 client.commands = new Collection();
+client.buttons = new Collection();
+client.treatedSalesIds = [];
 
 const commandsPath = path.join(import.meta.dir, 'commands');
 const commandFiles = fs.readdirSync(commandsPath).filter(file => (file.endsWith('.js') || file.endsWith('.ts')));
@@ -24,6 +32,24 @@ for (const file of commandFiles) {
 		client.commands.set(command.data.name, command);
 	} else {
 		console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+	}
+}
+
+const buttonsPath = path.join(import.meta.dir, 'buttons');
+const buttonsFiles = fs.readdirSync(buttonsPath).filter(file => (file.endsWith('.js') || file.endsWith('.ts')));
+
+for (const file of buttonsFiles) {
+	const filePath = path.join(buttonsPath, file);
+	let button: any = require(filePath);
+	// Set a new item in the Collection with the key as the button name and the value as the exported module
+	if ('default' in button) {
+		button = button.default;
+	}
+
+	if ('name' in button && 'execute' in button) {
+		client.buttons.set(button.name, button);
+	} else {
+		console.log(`[WARNING] The button at ${filePath} is missing a required "name" or "execute" property.`);
 	}
 }
 
