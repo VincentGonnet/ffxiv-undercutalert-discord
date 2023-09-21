@@ -2,6 +2,7 @@ import{ SlashCommandBuilder, Client, ChatInputCommandInteraction, SlashCommandSt
 import { Database } from "bun:sqlite";
 import { setSaleTimeout } from '../utils/auto-check';
 import { getItemName } from '../utils/get-item-name';
+import { replyErrorEmbed } from '../utils/error-embed';
 
 export default {
     data: new SlashCommandBuilder()
@@ -78,7 +79,7 @@ export default {
         let result : any = await db.query(`SELECT datacenter, homeworld, language FROM users WHERE id = $1`).all({$1: userId});
 
         if (result.length === 0) {
-            interaction.reply({content: `You need to set your preferences first.\nUse \`/preferences\` to do so.`, ephemeral: true});
+            replyErrorEmbed(interaction, "Preferences are not set", "You need to set your preferences first.\nUse `/preferences` to do so.");
             return;
         }
 
@@ -90,7 +91,7 @@ export default {
         result = await db.query(`SELECT name FROM retainers WHERE user_id = $1`).all({$1: userId});
 
         if (result.length === 0) {
-            interaction.reply({content: `You need to add a retainer first.\nUse \`/retainers add\` to do so.`, ephemeral: true});
+            replyErrorEmbed(interaction, "No retainers found", "You need to add a retainer first.\nUse `/retainers add` to do so.");
             return;
         }
 
@@ -102,13 +103,13 @@ export default {
 
         // Handle unknown retainer
         if (!retainerNames.includes(retainer)) {
-            interaction.reply({content: `Please select a registered retainer`, ephemeral: true});
+            replyErrorEmbed(interaction, "Unknown retainer", "Please select a registered retainer.");
             return;
         }
 
         // Handle unknown item
         if (isNaN(parseInt(itemId))) {
-            interaction.reply({content: `Please select a valid item in the autocomplete list.`, ephemeral: true});
+            replyErrorEmbed(interaction, "Unknown item", "Please select a valid item in the autocomplete list.");
             return;
         }
 
@@ -118,7 +119,7 @@ export default {
         if (automaticChecks === "yes") {
             // Restart the interval for this user, with the newly added sale
             const userSales : any = db.query(`SELECT * FROM sales WHERE user_id = $1`).all({$1: userId});
-            setSaleTimeout(userSales, client);
+            setSaleTimeout(userSales, client, userId);
         }
 
         const itemName : string = await getItemName(parseInt(itemId), language);

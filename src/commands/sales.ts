@@ -2,6 +2,7 @@ import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import{ Client, ChatInputCommandInteraction } from 'discord.js';
 import { getItemName } from '../utils/get-item-name';
 import { Sale } from '../@types/sales';
+import { replyErrorEmbed } from '../utils/error-embed';
 
 export default {
     data: new SlashCommandBuilder()
@@ -17,11 +18,7 @@ export default {
         const sales = await db.query(`SELECT * FROM sales WHERE user_id = $1`).all({$1: userId});
 
         if (sales.length === 0) {
-            const embed = new EmbedBuilder()
-                .setTitle(`No registered sales !`)
-                .setDescription("You have no registered sales.\nYou can register a sale with `/register-sale`.")
-                .setColor(0x00FF00);
-            await interaction.reply({embeds: [embed], ephemeral: true});
+            replyErrorEmbed(interaction, "No registered sales", "You don't have any registered sales.\nYou can register a sale with `/register-sale`.")
             return;
         }
 

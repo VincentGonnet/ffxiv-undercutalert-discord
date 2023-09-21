@@ -3,6 +3,7 @@ import{ Client, ChatInputCommandInteraction } from 'discord.js';
 import { getItemName } from '../utils/get-item-name';
 import Database from 'bun:sqlite';
 import { setSaleTimeout } from '../utils/auto-check';
+import { replyErrorEmbed } from '../utils/error-embed';
 
 export default {
     data: new SlashCommandBuilder()
@@ -58,14 +59,14 @@ export default {
 
         // Handle unknown item
         if (isNaN(parseInt(itemId))) {
-            interaction.reply({content: `Please select a valid item in the autocomplete list.`, ephemeral: true});
+            replyErrorEmbed(interaction, "Unknown item", "Please select a valid item in the autocomplete list.");
             return;
         }
 
         // Handle unknown sale
         const sale : any = db.query(`SELECT * FROM sales WHERE user_id = $1 AND item_id = $2`).get({$1: userId, $2: parseInt(itemId)});
         if (!sale) {
-            interaction.reply({content: `You don't have a sale for this item.`, ephemeral: true});
+            replyErrorEmbed(interaction, "Unknown sale", "Please select a valid sale in the autocomplete list.");
             return;
         }
 
@@ -76,7 +77,7 @@ export default {
 
         // Restart the interval for this user, to stop checking the now sold item
         const userSales : any = db.query(`SELECT * FROM sales WHERE user_id = $1`).all({$1: userId});
-        setSaleTimeout(userSales, client);
+        setSaleTimeout(userSales, client, userId);
 
         const preferences : any = db.query(`SELECT * FROM users WHERE id = $1`).all({$1: userId});
         let language : string = "en";

@@ -1,5 +1,6 @@
-import{ Client, ChatInputCommandInteraction, SlashCommandBuilder, SlashCommandSubcommandBuilder, SlashCommandStringOption, AutocompleteInteraction } from 'discord.js';
+import{ Client, ChatInputCommandInteraction, SlashCommandBuilder, SlashCommandSubcommandBuilder, SlashCommandStringOption, AutocompleteInteraction, EmbedBuilder } from 'discord.js';
 import { Database } from "bun:sqlite";
+import { replyErrorEmbed } from '../utils/error-embed';
 
 export default {
     data: new SlashCommandBuilder()
@@ -56,7 +57,11 @@ export default {
             const query = db.query(`INSERT INTO retainers (user_id, name) VALUES ($1, $2)`);
             await query.run({$1: userId, $2: name});
 
-            await interaction.reply({content: `The retainer ${name} has been added.`, ephemeral: true});
+            const embed = new EmbedBuilder()
+                .setTitle(`Retainer added`)
+                .setDescription("You successfully added the retainer " + name + ".")
+                .setColor('#76b054');
+            await interaction.reply({embeds: [embed], ephemeral: true});
             return;
         }
 
@@ -64,9 +69,9 @@ export default {
             const name: string = interaction.options.getString('remove-name');
 
             const query = db.query(`DELETE FROM retainers WHERE user_id = $1 AND name = $2`);
-            await query.run({$1: userId, $2: name});
+            query.run({$1: userId, $2: name});
 
-            await interaction.reply({content: `The retainer ${name} has been removed.`, ephemeral: true});
+            replyErrorEmbed(interaction, "Retainer removed", "The retainer " + name + " has been removed.");
             return;
         }
 
@@ -75,16 +80,21 @@ export default {
             let result : any = await query.all({$1: userId});
 
             if (result.length === 0) {
-                await interaction.reply({content: `You don't have any retainer registered.`, ephemeral: true});
+                replyErrorEmbed(interaction, "No retainers found", "You don't have any retainers registered.");
                 return;
             }
 
             let retainerList : string = '';
             for (const retainer of result) {
-                retainerList += `${retainer.name}\n`;
+                retainerList += `▫️${retainer.name}\n`;
             }
 
-            await interaction.reply({content: `Your retainers are:\n${retainerList}`, ephemeral: true});
+            const embed = new EmbedBuilder()
+                .setTitle(`Retainer list`)
+                .setDescription(`${retainerList}`)
+                .setColor('#e98640');
+
+            await interaction.reply({embeds: [embed], ephemeral: true});
             return;
         }
     }

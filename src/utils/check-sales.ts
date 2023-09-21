@@ -61,7 +61,7 @@ export async function checkSales(client: Client, db: Database, sales: any, homeS
         
         // Restart the interval for this user, to stop checking the now sold item
         const userSales : any = db.query(`SELECT * FROM sales WHERE user_id = $1`).all({$1: userId});
-        setSaleTimeout(userSales, client);
+        setSaleTimeout(userSales, client, userId);
     }
 
     const items = [];

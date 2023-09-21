@@ -1,6 +1,7 @@
-import{ SlashCommandBuilder, Client, ChatInputCommandInteraction, SlashCommandStringOption, AutocompleteInteraction} from 'discord.js';
+import{ SlashCommandBuilder, Client, ChatInputCommandInteraction, SlashCommandStringOption, AutocompleteInteraction, EmbedBuilder} from 'discord.js';
 import { Database } from "bun:sqlite";
 import { getWorldsByServer } from '../utils/worlds-getter.ts';
+import { replyErrorEmbed } from '../utils/error-embed.ts';
 
 export default {
     data: new SlashCommandBuilder()
@@ -62,15 +63,39 @@ export default {
 
         const worldList: string[] = await getWorldsByServer(datacenter);
         if (!worldList.includes(world)) {
-            await interaction.reply({content: `The world ${world} doesn't exist in the datacenter ${datacenter}.`, ephemeral: true});
+            replyErrorEmbed(interaction, "Unknown world", `The world ${world} doesn't exist in the datacenter ${datacenter}.`);
             return;
         }
 
         const db: Database = client.db;
         const userId: string = interaction.user.id;    
 
-        await db.run(`INSERT INTO users (id, datacenter, homeworld, language) VALUES (?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET datacenter = ?, homeworld = ?, language = ?`, [userId, datacenter, world, language, datacenter, world, language]);
-        await interaction.reply({content: `Your preferences have been set to ${datacenter} - ${world}, with language : ${language}.`, ephemeral: true});
-
+        db.run(`INSERT INTO users (id, datacenter, homeworld, language) VALUES (?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET datacenter = ?, homeworld = ?, language = ?`, [userId, datacenter, world, language, datacenter, world, language]);
+        
+        const embed = new EmbedBuilder()
+            .setTitle("Your preferences have been set !")
+            .setColor("#76b054")
+            .addFields(
+                {name: "Datacenter", value: datacenter, inline: true},
+                {name: "World", value: world, inline: true},
+                {name: "Language", value: fullLanguageName(language), inline: true}
+            );
+        
+        await interaction.reply({embeds: [embed], ephemeral: true});
     },
 };
+
+function fullLanguageName(language: string) {
+    switch (language) {
+        case "en":
+            return "English";
+        case "ja":
+            return "Japanese";
+        case "de":
+            return "German";
+        case "fr":
+            return "French";
+        default:
+            return "English";
+    }
+}

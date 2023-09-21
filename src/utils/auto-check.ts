@@ -3,10 +3,9 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client } from "discord.js
 import { checkSales } from "./check-sales";
 import { Sale } from "../@types/sales";
 
-export async function setSaleTimeout(userSales : Sale[], client : Client) {
+export async function setSaleTimeout(userSales : Sale[], client : Client, userId : string) {
     const db : Database = client.db;
-    const userId : string = userSales[0].user_id;
-
+    
     // If an interval already exists for this user, clear it and delete it from the intervals collection
     if (client.intervals.has(userId)) {
         clearInterval(client.intervals.get(userId));

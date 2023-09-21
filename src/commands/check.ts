@@ -1,6 +1,7 @@
 import Database from 'bun:sqlite';
 import{ Client, SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { checkSales } from '../utils/check-sales';
+import { replyErrorEmbed } from '../utils/error-embed';
 
 export default {
     data: new SlashCommandBuilder()
@@ -17,7 +18,7 @@ export default {
         const preferences : any = await db.query(`SELECT * FROM users WHERE id = $1`).all({$1: userId});
 
         if (sales.length === 0) {
-            await interaction.reply({content: "You don't have any registered sales.", ephemeral: true});
+            replyErrorEmbed(interaction, "No registered sales", "You don't have any registered sales.")
             return;
         }
 
