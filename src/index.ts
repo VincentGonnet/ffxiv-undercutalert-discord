@@ -15,6 +15,7 @@ const client = new Client({
 
 client.commands = new Collection();
 client.buttons = new Collection();
+client.intervals = new Collection();
 client.treatedSalesIds = [];
 
 const commandsPath = path.join(import.meta.dir, 'commands');

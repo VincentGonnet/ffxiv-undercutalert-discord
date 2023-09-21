@@ -113,11 +113,14 @@ export default {
 
         const apiResponse = await fetch(`https://universalis.app/api/v2/${homeworld}/${itemId}`);
         const jsonResponse = await apiResponse.json();
-        console.log(jsonResponse.listings);
         // console.log(jsonResponse.recentHistory);
 
         await db.query('INSERT INTO sales (user_id, retainer, item_id, automatic_checks) VALUES ($1, $2, $3, $4)')
             .run({$1: userId, $2: retainer, $3: parseInt(itemId), $4: (automaticChecks === "yes") ? 1 : 0});
+
+        if (automaticChecks === "yes") {
+            
+        }
 
         interaction.reply({content: `Retainer: ${retainer}, itemId: ${itemId}, auto: ${automaticChecks}`, ephemeral: true});
     }

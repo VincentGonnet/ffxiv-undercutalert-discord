@@ -1,6 +1,7 @@
 import Database from 'bun:sqlite';
 import { ActionRowBuilder, ActivityType, ButtonBuilder, ButtonStyle, Client, Events } from 'discord.js';
 import { checkSales } from '../utils/check-sales';
+import { setSaleTimeout } from '../utils/auto-check';
 
 export default {
 	name: Events.ClientReady,
@@ -34,6 +35,7 @@ export default {
 			const userId : string = sale.user_id;
 			const userSales : Sale[] = salesByUser.find(sales => sales[0].user_id === userId);
 
+			// If userSales exist, push the new sale to it, else create it.
 			if (userSales) {
 				userSales.push(sale);
 			} else {
@@ -42,32 +44,8 @@ export default {
 		}
 
 		for (const userSales of salesByUser) {
-			const userId : string = userSales[0].user_id;
-			const preferences : any = await db.query(`SELECT * FROM users WHERE id = $1`).all({$1: userId});
-
-			if (preferences.length === 0) continue;
-
-			const homeServer = preferences[0].datacenter;
-			const homeWorld = preferences[0].homeworld;
-			const language = preferences[0].language;
-
-			setInterval(async () => {
-				const responseEmbed = await checkSales(client, db, userSales, homeServer, homeWorld, language, userId, true);
-
-				if (responseEmbed.data.fields[0].name == "You didn't get undercut for any of your sales") return;
-
-				const deleteButton = new ButtonBuilder()
-					.setCustomId('delete-auto-check')
-					.setLabel('❌')
-					.setStyle(ButtonStyle.Secondary);
-				
-				const row : any = new ActionRowBuilder().addComponents(deleteButton);
-
-				const user = await client.users.fetch(userId);
-				await user.send({embeds: [responseEmbed], components: [row]});
-			}, 1*30*1000);
-
-			
+			// For each user, set sales timeouts
+			setSaleTimeout(userSales, client);
 
 			await new Promise(resolve => setTimeout(resolve, 1000)); // one sec delay between each user, to avoid spamming the API
 		}
