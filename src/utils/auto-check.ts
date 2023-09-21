@@ -30,8 +30,7 @@ export async function setSaleTimeout(userSales : Sale[], client : Client) {
     client.intervals.set(userId, 
         (setInterval(async () => {
             const responseEmbed = await checkSales(client, db, userSales, homeServer, homeWorld, language, userId, true);
-
-            if (responseEmbed.data.fields.length <= 1 && responseEmbed.data.fields[0].name == "You didn't get undercut for any of your sales") return;
+            if (responseEmbed == null) return;
 
             const deleteButton = new ButtonBuilder()
                 .setCustomId('delete-auto-check')

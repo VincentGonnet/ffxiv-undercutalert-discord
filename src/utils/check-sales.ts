@@ -57,6 +57,7 @@ export async function checkSales(client: Client, db: Database, sales: any, homeS
                 break;
         }
         await db.query(`DELETE FROM sales WHERE rowid in (SELECT rowid FROM sales WHERE user_id = $1 AND item_id = $2 LIMIT 1)`).run({$1: userId, $2: sold});
+        
     }
 
     const items = [];
@@ -89,14 +90,14 @@ export async function checkSales(client: Client, db: Database, sales: any, homeS
     if (undercuts.length > 0) {
         const itemsList = items.join('\n▫️');
         responseEmbed.addFields({name: 'You got undercut for the following sales', value: `▫️${itemsList}`});
-    } else {
+    } else if (!autoCheck) { // if autocheck, no need to put a field if no undercuts
         responseEmbed.addFields({name: 'You didn\'t get undercut for any of your sales', value: '🎉'});
     }
 
     if (solds.length > 0) {
         const soldsList = soldsItems.join('\n▫️');
-        responseEmbed.addFields({name: 'The following items have been sold', value: `▫️${soldsList}`});
+        responseEmbed.addFields({name: 'The following items have been sold / is not found', value: `▫️${soldsList}`});
     }
 
-    return responseEmbed;
+    return (responseEmbed.data != null && responseEmbed.data.fields != null && responseEmbed.data.fields.length > 0) ? responseEmbed : null; // return null if no fields
 }

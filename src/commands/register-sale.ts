@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require('discord.js');
 import{ Client, ChatInputCommandInteraction, SlashCommandStringOption, AutocompleteInteraction } from 'discord.js';
 import { Database } from "bun:sqlite";
+import { setSaleTimeout } from '../utils/auto-check';
 
 export default {
     data: new SlashCommandBuilder()
@@ -119,7 +120,9 @@ export default {
             .run({$1: userId, $2: retainer, $3: parseInt(itemId), $4: (automaticChecks === "yes") ? 1 : 0});
 
         if (automaticChecks === "yes") {
-            
+            // Restart the interval for this user, with the newly added sale
+            const userSales : any = db.query(`SELECT * FROM sales WHERE user_id = $1`).all({$1: userId});
+            setSaleTimeout(userSales, client);
         }
 
         interaction.reply({content: `Retainer: ${retainer}, itemId: ${itemId}, auto: ${automaticChecks}`, ephemeral: true});
