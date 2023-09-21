@@ -1,5 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
-import{ Client, ChatInputCommandInteraction, SlashCommandStringOption, AutocompleteInteraction} from 'discord.js';
+import{ SlashCommandBuilder, Client, ChatInputCommandInteraction, SlashCommandStringOption, AutocompleteInteraction} from 'discord.js';
 import { Database } from "bun:sqlite";
 import { getWorldsByServer } from '../utils/worlds-getter.ts';
 

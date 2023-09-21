@@ -1,7 +1,6 @@
-const { SlashCommandBuilder } = require('discord.js');
-import{ Client, ChatInputCommandInteraction } from 'discord.js';
+import{ SlashCommandBuilder, Client, ChatInputCommandInteraction } from 'discord.js';
 
-module.exports = {
+export default {
     data: new SlashCommandBuilder()
         .setName('clear')
         .setDescription('Clear the bot messages from the DM channel.'),
@@ -13,7 +12,7 @@ module.exports = {
         if (interaction.guild === null) {
             // delete all messages from the bot
             const messages = await interaction.channel.messages.fetch();
-            const botMessages = await messages.filter(message => message.author.id === client.user.id);
+            const botMessages = messages.filter(message => message.author.id === client.user.id);
             botMessages.forEach(async message => {
                 await message.delete();
             });

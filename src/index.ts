@@ -1,8 +1,7 @@
-// Require the necessary discord.js classes
 import fs from 'node:fs';
 import path from 'node:path';
 import { Database } from "bun:sqlite";
-import { Collection, Client, Events, GatewayIntentBits, ApplicationCommand, SlashCommandBuilder, ChatInputCommandInteraction, AutocompleteInteraction } from 'discord.js';
+import { Collection, Client, GatewayIntentBits } from 'discord.js';
 import { Partials } from 'discord.js';
 
 const token = Bun.env.DISCORD_TOKEN;
@@ -20,7 +19,6 @@ client.treatedSalesIds = [];
 
 const commandsPath = path.join(import.meta.dir, 'commands');
 const commandFiles = fs.readdirSync(commandsPath).filter(file => (file.endsWith('.js') || file.endsWith('.ts')));
-
 for (const file of commandFiles) {
 	const filePath = path.join(commandsPath, file);
 	let command: any = require(filePath);
@@ -38,7 +36,6 @@ for (const file of commandFiles) {
 
 const buttonsPath = path.join(import.meta.dir, 'buttons');
 const buttonsFiles = fs.readdirSync(buttonsPath).filter(file => (file.endsWith('.js') || file.endsWith('.ts')));
-
 for (const file of buttonsFiles) {
 	const filePath = path.join(buttonsPath, file);
 	let button: any = require(filePath);
@@ -56,7 +53,6 @@ for (const file of buttonsFiles) {
 
 const eventsPath = path.join(import.meta.dir, 'events');
 const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js') || file.endsWith('.ts'));
-
 for (const file of eventFiles) {
 	const filePath = path.join(eventsPath, file);
 	const event : any = require(filePath).default;

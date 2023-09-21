@@ -2,7 +2,6 @@ import { AutocompleteInteraction, EmbedBuilder, SlashCommandBuilder, SlashComman
 import{ Client, ChatInputCommandInteraction } from 'discord.js';
 import { getItemName } from '../utils/get-item-name';
 import Database from 'bun:sqlite';
-import { Sale } from '../@types/sales';
 import { setSaleTimeout } from '../utils/auto-check';
 
 export default {
@@ -32,9 +31,7 @@ export default {
             }
 
             let language : string = "en";
-            if (preferences.length != 0) {
-                language = preferences[0].language;
-            }
+            if (preferences.length != 0) language = preferences[0].language;
 
             interface TranslatedSale {
                 itemId: number,
@@ -75,7 +72,7 @@ export default {
         // TODO: if two sales for the same item, let user choose retainer to remove the sale from
 
         // Remove sale from database
-        await db.query(`DELETE FROM sales WHERE rowid in (SELECT rowid FROM sales WHERE user_id = $1 AND item_id = $2 LIMIT 1)`).run({$1: userId, $2: parseInt(itemId)});
+        db.query(`DELETE FROM sales WHERE rowid in (SELECT rowid FROM sales WHERE user_id = $1 AND item_id = $2 LIMIT 1)`).run({$1: userId, $2: parseInt(itemId)});
 
         // Restart the interval for this user, to stop checking the now sold item
         const userSales : any = db.query(`SELECT * FROM sales WHERE user_id = $1`).all({$1: userId});
@@ -83,15 +80,13 @@ export default {
 
         const preferences : any = db.query(`SELECT * FROM users WHERE id = $1`).all({$1: userId});
         let language : string = "en";
-        if (preferences.length != 0) {
-            language = preferences[0].language;
-        }
+        if (preferences.length != 0) language = preferences[0].language;
 
         const itemName : string = await getItemName(parseInt(itemId), language);
 
         const embed : EmbedBuilder = new EmbedBuilder()
             .setTitle("Sale removed")
-            .setDescription("Your sale has been removed successfully ✅\nYou can list your sales with `/list`\nYou can add a new sale with `/register-sale`")
+            .setDescription("Your sale has been removed successfully !\nYou can list your sales with `/list`\nYou can add a new sale with `/register-sale`")
             .setColor("#dd4138")
             .addFields({name: "Item", value: itemName, inline: true}, {name: "Retainer", value: sale.retainer, inline: true});
 

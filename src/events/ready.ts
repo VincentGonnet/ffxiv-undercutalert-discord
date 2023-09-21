@@ -1,7 +1,7 @@
 import Database from 'bun:sqlite';
-import { ActionRowBuilder, ActivityType, ButtonBuilder, ButtonStyle, Client, Events } from 'discord.js';
-import { checkSales } from '../utils/check-sales';
+import { ActivityType, Client, Events } from 'discord.js';
 import { setSaleTimeout } from '../utils/auto-check';
+import { Sale } from '../@types/sales';
 
 export default {
 	name: Events.ClientReady,
@@ -19,13 +19,6 @@ export default {
 
 		const db : Database = client.db;
 		const sales : any = db.query(`SELECT * FROM sales`).all();
-
-		interface Sale {
-			user_id: string,
-			retainer: string,
-			item_id: number,
-			automatic_checks: number
-		}
 
 		if (sales.length === 0) return;
 
