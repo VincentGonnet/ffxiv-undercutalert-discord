@@ -1,5 +1,6 @@
 import Database from "bun:sqlite";
 import { Client, EmbedBuilder } from "discord.js";
+import { setSaleTimeout } from "./auto-check";
 
 export async function checkSales(client: Client, db: Database, sales: any, homeServer: string, homeWorld: string, language: string, userId: string, autoCheck: boolean = false) {
     const undercuts = [];
@@ -58,6 +59,9 @@ export async function checkSales(client: Client, db: Database, sales: any, homeS
         }
         await db.query(`DELETE FROM sales WHERE rowid in (SELECT rowid FROM sales WHERE user_id = $1 AND item_id = $2 LIMIT 1)`).run({$1: userId, $2: sold});
         
+        // Restart the interval for this user, to stop checking the now sold item
+        const userSales : any = db.query(`SELECT * FROM sales WHERE user_id = $1`).all({$1: userId});
+        setSaleTimeout(userSales, client);
     }
 
     const items = [];
