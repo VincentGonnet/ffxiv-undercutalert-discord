@@ -1,13 +1,7 @@
 import Database from "bun:sqlite";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, Client } from "discord.js";
 import { checkSales } from "./check-sales";
-
-interface Sale {
-    user_id: string,
-    retainer: string,
-    item_id: number,
-    automatic_checks: number
-}
+import { Sale } from "../@types/sales";
 
 export async function setSaleTimeout(userSales : Sale[], client : Client) {
     const db : Database = client.db;
@@ -18,6 +12,9 @@ export async function setSaleTimeout(userSales : Sale[], client : Client) {
         clearInterval(client.intervals.get(userId));
         client.intervals.delete(userId);
     }
+
+    // If the user has no sales, return
+    if (userSales.length === 0) return;
 
     const preferences : any = await db.query(`SELECT * FROM users WHERE id = $1`).all({$1: userId});
 

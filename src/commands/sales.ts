@@ -1,11 +1,12 @@
 import { EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import{ Client, ChatInputCommandInteraction } from 'discord.js';
 import { getItemName } from '../utils/get-item-name';
+import { Sale } from '../@types/sales';
 
 export default {
     data: new SlashCommandBuilder()
         .setName('sales')
-        .setDescription('List your registered sales !'),
+        .setDescription('List your registered sales.'),
     async autocomplete(client: Client, interaction: ChatInputCommandInteraction) {
             
     },
@@ -18,7 +19,7 @@ export default {
         if (sales.length === 0) {
             const embed = new EmbedBuilder()
                 .setTitle(`No registered sales !`)
-                .setDescription("You have no registered sales.\nYou can register a sale with `/register-sale`.`)")
+                .setDescription("You have no registered sales.\nYou can register a sale with `/register-sale`.")
                 .setColor(0x00FF00);
             await interaction.reply({embeds: [embed], ephemeral: true});
             return;
@@ -29,13 +30,6 @@ export default {
         let language : string = "en";
         if (preferences.length != 0) {
             language = preferences[0].language;
-        }
-
-        interface Sale {
-            user_id: string,
-            retainer: string,
-            item_id: number,
-            automatic_checks: number
         }
 
         const salesByRetainer : Sale[][] = [];

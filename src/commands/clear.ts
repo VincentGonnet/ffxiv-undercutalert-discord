@@ -4,7 +4,7 @@ import{ Client, ChatInputCommandInteraction } from 'discord.js';
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('clear')
-        .setDescription('Clear the bot messages from the channel.'),
+        .setDescription('Clear the bot messages from the DM channel.'),
     async autocomplete(client: Client, interaction: ChatInputCommandInteraction) {
             
     },

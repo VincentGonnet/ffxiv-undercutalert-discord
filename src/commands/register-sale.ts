@@ -7,7 +7,7 @@ import { getItemName } from '../utils/get-item-name';
 export default {
     data: new SlashCommandBuilder()
         .setName('register-sale')
-        .setDescription('Register a sale')
+        .setDescription('Register a sale.')
         .addStringOption((option: SlashCommandStringOption) =>
             option
                 .setName('item')
