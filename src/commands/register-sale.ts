@@ -2,6 +2,7 @@ const { SlashCommandBuilder } = require('discord.js');
 import{ Client, ChatInputCommandInteraction, SlashCommandStringOption, AutocompleteInteraction, EmbedBuilder } from 'discord.js';
 import { Database } from "bun:sqlite";
 import { setSaleTimeout } from '../utils/auto-check';
+import { getItemName } from '../utils/get-item-name';
 
 export default {
     data: new SlashCommandBuilder()
@@ -121,25 +122,7 @@ export default {
             setSaleTimeout(userSales, client);
         }
 
-        const response = await fetch(`https://xivapi.com/item/` + itemId);
-        let jsonResponse = await response.json(); 
-
-        let itemName : string = jsonResponse.Name;
-
-        switch (language) {
-            case 'fr':
-                itemName = jsonResponse.Name_fr;
-                break;
-            case 'de':
-                itemName = jsonResponse.Name_de;
-                break;
-            case 'ja':
-                itemName = jsonResponse.Name_ja;
-                break;
-            default:
-                itemName = jsonResponse.Name;
-                break;
-        }
+        const itemName : string = await getItemName(parseInt(itemId), language);
 
         let description : string = "Your sale has been registered successfully ✅\nUse `/check` to start a sale check.";
         description += automaticChecks === "yes" ? "\nYou will be notified if you get undercut, or if your retainer sell this item.\nYou can list your sales with `/list`, and remove them with `/remove-sale`." : "\nYou can list your sales with `/list`, and remove them with `/remove-sale`.";
