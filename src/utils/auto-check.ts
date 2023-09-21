@@ -41,6 +41,6 @@ export async function setSaleTimeout(userSales : Sale[], client : Client) {
 
             const user = await client.users.fetch(userId);
             await user.send({embeds: [responseEmbed], components: [row]});
-        }, 1*30*1000))
+        }, 5*60*1000))
     );
 }

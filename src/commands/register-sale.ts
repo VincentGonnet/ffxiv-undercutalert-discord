@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-import{ Client, ChatInputCommandInteraction, SlashCommandStringOption, AutocompleteInteraction } from 'discord.js';
+import{ Client, ChatInputCommandInteraction, SlashCommandStringOption, AutocompleteInteraction, EmbedBuilder } from 'discord.js';
 import { Database } from "bun:sqlite";
 import { setSaleTimeout } from '../utils/auto-check';
 
@@ -112,10 +112,6 @@ export default {
             return;
         }
 
-        const apiResponse = await fetch(`https://universalis.app/api/v2/${homeworld}/${itemId}`);
-        const jsonResponse = await apiResponse.json();
-        // console.log(jsonResponse.recentHistory);
-
         await db.query('INSERT INTO sales (user_id, retainer, item_id, automatic_checks) VALUES ($1, $2, $3, $4)')
             .run({$1: userId, $2: retainer, $3: parseInt(itemId), $4: (automaticChecks === "yes") ? 1 : 0});
 
@@ -125,6 +121,35 @@ export default {
             setSaleTimeout(userSales, client);
         }
 
-        interaction.reply({content: `Retainer: ${retainer}, itemId: ${itemId}, auto: ${automaticChecks}`, ephemeral: true});
+        const response = await fetch(`https://xivapi.com/item/` + itemId);
+        let jsonResponse = await response.json(); 
+
+        let itemName : string = jsonResponse.Name;
+
+        switch (language) {
+            case 'fr':
+                itemName = jsonResponse.Name_fr;
+                break;
+            case 'de':
+                itemName = jsonResponse.Name_de;
+                break;
+            case 'ja':
+                itemName = jsonResponse.Name_ja;
+                break;
+            default:
+                itemName = jsonResponse.Name;
+                break;
+        }
+
+        let description : string = "Your sale has been registered successfully ✅\nUse `/check` to start a sale check.";
+        description += automaticChecks === "yes" ? "\nYou will be notified if you get undercut, or if your retainer sell this item.\nYou can list your sales with `/list`, and remove them with `/remove-sale`." : "\nYou can list your sales with `/list`, and remove them with `/remove-sale`.";
+
+        const embed = new EmbedBuilder()
+            .setTitle(`Sale registered`)
+            .setDescription(description)
+            .setColor('#76b054')
+            .addFields({name: "Item", value: itemName, inline: true}, {name: "Retainer", value: retainer, inline: true});
+
+        interaction.reply({embeds: [embed], ephemeral: false});
     }
 };
